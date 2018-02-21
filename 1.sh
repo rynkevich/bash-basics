@@ -17,11 +17,11 @@ then
     exit 1
 fi
 
-files=$(find $1 -mindepth 1 -maxdepth $2 -type d -printf "%p\n")
+dirs=$(find $1 -mindepth 1 -maxdepth $2 -type d -printf "%p\n")
 
-for file in $files
+for dir in $dirs
 do
-    info=$(realpath $file)' '$(find $file -mindepth 1 -maxdepth 1 -type f | wc -l)
+    info=$(realpath $dir)' '$(find $dir -mindepth 1 -maxdepth 1 -type f | wc -l)
     if [ $# -eq 3 ]
     then
         echo $info >> $3

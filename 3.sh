@@ -1,20 +1,26 @@
-if [ $# -eq 0 ]
+if [ $# -lt 2 ]
 then
     echo "$0: missing operand"
     exit 1
-elif [ ! -d $1 ]
+elif [ ! -d $2 ]
 then
     echo "$0: directory '$1' not found"
     exit 1
 fi
 
-files=$(find $1 -maxdepth 2 -type f -printf "%p\n")
+files=$(find $2 -maxdepth 2 -type f -printf "%p\n")
 
-fcount=0
 for file in $files
 do
-    echo $(stat --printf="%n %A %s bytes\n" $file)
-    fcount=$(( $fcount + 1 ))
-done
+    if [ ! -r $file ]
+    then
+        echo $(realpath $file) $(basename $file) \
+            $(stat --printf="%s bytes" $file) "No access!"
+    fi
 
-echo $fcount
+    if grep -q $1 $file
+    then
+        echo $(realpath $file) $(basename $file) \
+            $(stat --printf="%s bytes" $file)
+    fi
+done

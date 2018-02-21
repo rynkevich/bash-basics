@@ -1,38 +1,46 @@
+readonly MAX_FILES_TO_OUT=20
+
 function is_positive_integer
 {
     return $([[ $1 =~ ^(0|[1-9][0-9]*)$ ]])
 }
 
-if [ $# -lt 2 ]
+if [ $# -lt 3 ]
 then
     echo "$0: missing operand"
     exit 1
-elif [ ! -d $1 ]
+elif ! is_positive_integer $1
 then
-    echo "$0: directory '$1' not found"
+    echo "$0: first argument must be a positive integer"
     exit 1
 elif ! is_positive_integer $2
 then
     echo "$0: second argument must be a positive integer"
     exit 1
+elif [ $2 -lt $1 ]
+then
+    echo "$0: max size (arg 1) can not be greater than min size (arg 2)"
+    exit 1
+elif [ ! -d $3 ]
+then
+    echo "$0: directory '$3' not found"
+    exit 1
 fi
 
-dirs=$(find $1 -mindepth 1 -maxdepth $2 -type d -printf "%p\n")
+files=$(find $3 -mindepth 1 -type f -printf "%p\n")
 
-for dir in $dirs
+fcount=1
+for file in $files
 do
-    info=$(realpath $dir)' '$(find $dir -mindepth 1 -maxdepth 1 -type f | wc -l)
-    if [ $# -eq 3 ]
+    fsize=$(wc -c < $file)
+    if [ $fsize -ge $1 ] && [ $fsize -le $2 ]
     then
-        echo $info >> $3
-    else
-        echo $info
+        echo "$fcount." $(realpath $file) $(basename $file) $fsize 'bytes'
+        if [ $fcount -eq $MAX_FILES_TO_OUT ]
+        then
+            break
+        else
+            fcount=$(( $fcount + 1 ))
+        fi
     fi
 done
-
-if [ $2 -eq 0 ]
-then
-    echo 1
-else
-    echo $(find $1 -mindepth 0 -maxdepth $(( $2 - 1 )) -type d | wc -l)
-fi

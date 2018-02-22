@@ -6,12 +6,12 @@ function main
 {
     validate_arguments $@
 
-    files=$(find $3 -mindepth 1 -type f -printf "%p\n")
+    files=$(find $3 -maxdepth 1 -type f -printf "%p\n")
     fcount=1
     for file in $files
     do
         fsize=$(wc -c < $file)
-        if is_proper_fsize $1 $2
+        if is_proper_fsize $fsize $1 $2
         then
             echo "$fcount." $(realpath $file) $(basename $file) $fsize 'bytes'
             if [ $fcount -eq $MAX_FILES_TO_OUT ]
@@ -56,7 +56,7 @@ function is_positive_integer
 
 function is_proper_fsize
 {
-    return $([ $fsize -ge $1 ] && [ $fsize -le $2 ])
+    return $([ $1 -ge $2 ] && [ $1 -le $3 ])
 }
 
 main $@

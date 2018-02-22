@@ -1,17 +1,25 @@
 #!/bin/bash
 
+readonly PROGNAME=$(basename $0)
+readonly ARGC=$#
+
+readonly MIN_FSIZE=$1
+readonly MAX_FSIZE=$2
+readonly SELECTED_DIRNAME=$3
+
+readonly VALID_ARGC=3
 readonly MAX_FILES_TO_OUT=20
 
 function main
 {
-    validate_arguments $@
+    validate_arguments
 
-    files=$(find $3 -maxdepth 1 -type f -printf "%p\n")
-    fcount=1
+    local files=$(find $SELECTED_DIRNAME -maxdepth 1 -type f -printf "%p\n")
+    local fcount=1
     for file in $files
     do
-        fsize=$(wc -c < $file)
-        if is_proper_fsize $fsize $1 $2
+        local fsize=$(stat --printf="%s" $file)
+        if is_proper_fsize $fsize $MIN_FSIZE $MAX_FSIZE
         then
             echo "$fcount." $(realpath $file) $(basename $file) $fsize 'bytes'
             if [ $fcount -eq $MAX_FILES_TO_OUT ]
@@ -26,37 +34,43 @@ function main
 
 function validate_arguments
 {
-    if [ $# -lt 3 ]
+    if [ $ARGC -lt $VALID_ARGC ]
     then
-        echo "$0: missing operand"
+        echo "$PROGNAME: missing operand"
         exit 1
-    elif ! is_positive_integer $1
+    elif ! is_positive_integer $MIN_FSIZE
     then
-        echo "$0: first argument must be a positive integer"
+        echo "$PROGNAME: first argument must be a positive integer"
         exit 1
-    elif ! is_positive_integer $2
+    elif ! is_positive_integer $MAX_FSIZE
     then
-        echo "$0: second argument must be a positive integer"
+        echo "$PROGNAME: second argument must be a positive integer"
         exit 1
-    elif [ $2 -lt $1 ]
+    elif [ $MAX_FSIZE -lt $MIN_FSIZE ]
     then
-        echo "$0: min size (arg 1) can not be greater than max size (arg 2)"
+        echo "$PROGNAME: min size (arg 1) can not be greater than max size (arg 2)"
         exit 1
     elif [ ! -d $3 ]
     then
-        echo "$0: directory '$3' not found"
+        echo "$PROGNAME: directory '$SELECTED_DIRNAME' not found"
         exit 1
     fi
 }
 
 function is_positive_integer
 {
-    return $([[ $1 =~ ^(0|[1-9][0-9]*)$ ]])
+    local num=$1
+
+    return $([[ $num =~ ^(0|[1-9][0-9]*)$ ]])
 }
 
 function is_proper_fsize
 {
-    return $([ $1 -ge $2 ] && [ $1 -le $3 ])
+    local fsize=$1
+    local minsize=$2
+    local maxsize=$3
+
+    return $([ $fsize -ge $minsize ] && [ $fsize -le $maxsize ])
 }
 
-main $@
+main

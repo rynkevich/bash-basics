@@ -1,22 +1,31 @@
 #!/bin/bash
 
+readonly PROGNAME=$(basename $0)
+readonly ARGC=$#
+
+readonly SELECTED_DIRNAME=$1
+readonly N1=$2
+readonly N2=$3
+
+readonly VALID_ARGC=3
+
 function main
 {
-    validate_arguments $@
+    validate_arguments
 
-    size_scoped_files=()
+    local size_scoped_files=()
 
-    files=$(find $1 -mindepth 1 -type f -printf "%p\n")
+    local files=$(find $SELECTED_DIRNAME -mindepth 1 -type f -printf "%p\n")
     for file in $files
     do
-        fsize=$(stat --printf="%s" $file)
-        if is_proper_fsize $fsize $2 $3
+        local fsize=$(stat --printf="%s" $file)
+        if is_proper_fsize $fsize $N1 $N2
         then
             size_scoped_files+=($file)
         fi
     done
 
-    offset=0
+    local offset=0
     for (( i=0; i<${#size_scoped_files[@]}; i++ ))
     do
         for (( j=$offset; j<${#size_scoped_files[@]}; j++ ))
@@ -33,42 +42,51 @@ function main
 
 function validate_arguments
 {
-    if [ $# -lt 3 ]
+    if [ $ARGC -lt $VALID_ARGC ]
     then
-        echo "$0: missing operand"
+        echo "$PROGNAME: missing operand"
         exit 1
-    elif [ ! -d $1 ]
+    elif [ ! -d $SELECTED_DIRNAME ]
     then
-        echo "$0: directory '$1' not found"
+        echo "$PROGNAME: directory '$SELECTED_DIRNAME' not found"
         exit 1
-    elif ! is_positive_integer $2
+    elif ! is_positive_integer $N1
     then
-        echo "$0: second argument must be a positive integer"
+        echo "$PROGNAME: second argument must be a positive integer"
         exit 1
-    elif ! is_positive_integer $3
+    elif ! is_positive_integer $N2
     then
-        echo "$0: third argument must be a positive integer"
+        echo "$PROGNAME: third argument must be a positive integer"
         exit 1
-    elif [ $3 -lt $2 ]
+    elif [ $N2 -lt $N1 ]
     then
-        echo "$0: min size (arg 2) can not be greater than max size (arg 3)"
+        echo "$PROGNAME: min size (arg 2) can not be greater than max size (arg 3)"
         exit 1
     fi
 }
 
 function is_positive_integer
 {
-    return $([[ $1 =~ ^(0|[1-9][0-9]*)$ ]])
+    local num=$1
+
+    return $([[ $num =~ ^(0|[1-9][0-9]*)$ ]])
 }
 
 function is_proper_fsize
 {
-    return $([ $1 -ge $2 ] && [ $1 -le $3 ])
+    local fsize=$1
+    local minsize=$2
+    local maxsize=$3
+
+    return $([ $fsize -ge $minsize ] && [ $fsize -le $maxsize ])
 }
 
 function is_identical
 {
-    if ! cmp --silent $1 $2
+    local file1=$1
+    local file2=$2
+
+    if ! cmp --silent $file1 $file2
     then
         return 1
     else
@@ -76,4 +94,4 @@ function is_identical
     fi
 }
 
-main $@
+main

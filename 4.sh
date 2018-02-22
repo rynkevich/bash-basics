@@ -1,11 +1,19 @@
 #!/bin/bash
 
+readonly PROGNAME=$(basename $0)
+readonly ARGC=$#
+
+readonly DIR1=$1
+readonly DIR2=$2
+
+readonly VALID_ARGC=2
+
 function main
 {
-    validate_arguments $@
+    validate_arguments
 
-    dir1_files=$(find $1 -maxdepth 1 -type f -printf "%p\n")
-    dir2_files=$(find $2 -maxdepth 1 -type f -printf "%p\n")
+    local dir1_files=$(find $DIR1 -maxdepth 1 -type f -printf "%p\n")
+    local dir2_files=$(find $DIR2 -maxdepth 1 -type f -printf "%p\n")
 
     for dir1_file in $dir1_files
     do
@@ -23,19 +31,19 @@ function main
 
 function validate_arguments
 {
-    if [ $# -lt 2 ]
+    if [ $ARGC -lt $VALID_ARGC ]
     then
-        echo "$0: missing argument"
+        echo "$PROGNAME: missing argument"
         exit 1
-    elif [ ! -d $1 ]
+    elif [ ! -d $DIR1 ]
     then
-        echo "$0: directory '$1' not found"
+        echo "$PROGNAME: directory '$DIR1' not found"
         exit 1
-    elif [ ! -d $2 ]
+    elif [ ! -d $DIR2 ]
     then
-        echo "$0: directory '$2' not found"
+        echo "$PROGNAME: directory '$DIR2' not found"
         exit 1
     fi
 }
 
-main $@
+main

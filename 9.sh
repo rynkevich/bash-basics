@@ -1,55 +1,56 @@
 #!/bin/bash
 
+readonly PROGNAME=$(basename $0)
+readonly ARGC=$#
+
+readonly SELECTED_DIRNAME=$1
+readonly NESTING=$2
+readonly FOUT=$3
+
+readonly VALID_ARGC=3
+
 function main
 {
-    validate_arguments $@
+    validate_arguments
 
-    if [ $# -ge 3 ]
-    then
-        touch $3
-    fi
-    
-    dirs=$(find $1 -mindepth 1 -maxdepth $2 -type d -printf "%p\n")
+    local dirs=$(find $SELECTED_DIRNAME -mindepth 1 -maxdepth $NESTING -type d -printf "%p\n")
 
     for dir in $dirs
     do
-        info=$(realpath $dir)' '$(find $dir -mindepth 1 -maxdepth 1 -type f | wc -l)
-        if [ $# -ge 3 ]
-        then
-            echo $info >> $3
-        else
-            echo $info
-        fi
+        local info=$(realpath $dir)' '$(find $dir -mindepth 1 -maxdepth 1 -type f | wc -l)
+        echo $info >> $FOUT
     done
 
-    if [ $2 -eq 0 ]
+    if [ $NESTING -eq 0 ]
     then
         echo 1
     else
-        echo $(find $1 -mindepth 0 -maxdepth $(( $2 - 1 )) -type d | wc -l)
+        echo $(find $SELECTED_DIRNAME -mindepth 0 -maxdepth $(( $NESTING - 1 )) -type d | wc -l)
     fi
 }
 
 function validate_arguments
 {
-    if [ $# -lt 2 ]
+    if [ $ARGC -lt $VALID_ARGC ]
     then
-        echo "$0: missing operand"
+        echo "$PROGNAME: missing operand"
         exit 1
-    elif [ ! -d $1 ]
+    elif [ ! -d $SELECTED_DIRNAME ]
     then
-        echo "$0: directory '$1' not found"
+        echo "$PROGNAME: directory '$SELECTED_DIRNAME' not found"
         exit 1
-    elif ! is_positive_integer $2
+    elif ! is_positive_integer $NESTING
     then
-        echo "$0: second argument must be a positive integer"
+        echo "$PROGNAME: second argument must be a positive integer"
         exit 1
     fi
 }
 
 function is_positive_integer
 {
-    return $([[ $1 =~ ^(0|[1-9][0-9]*)$ ]])
+    local num=$1
+
+    return $([[ $num =~ ^(0|[1-9][0-9]*)$ ]])
 }
 
-main $@
+main

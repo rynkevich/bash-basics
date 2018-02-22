@@ -1,12 +1,19 @@
 #!/bin/bash
 
+readonly PROGNAME=$(basename $0)
+readonly ARGC=$#
+
+readonly SELECTED_DIRNAME=$1
+
+readonly VALID_ARGC=1
+
 function main
 {
-    validate_arguments $@
+    validate_arguments
 
-    files=$(find $1 -maxdepth 2 -type f -printf "%p\n")
+    local files=$(find $SELECTED_DIRNAME -maxdepth 2 -type f -printf "%p\n")
 
-    fcount=0
+    local fcount=0
     for file in $files
     do
         echo $(stat --printf="%n %A %s bytes\n" $file)
@@ -18,15 +25,15 @@ function main
 
 function validate_arguments
 {
-    if [ $# -eq 0 ]
+    if [ $ARGC -lt $VALID_ARGC ]
     then
-        echo "$0: missing operand"
+        echo "$PROGNAME: missing operand"
         exit 1
-    elif [ ! -d $1 ]
+    elif [ ! -d $SELECTED_DIRNAME ]
     then
-        echo "$0: directory '$1' not found"
+        echo "$PROGNAME: directory '$SELECTED_DIRNAME' not found"
         exit 1
     fi
 }
 
-main $@
+main

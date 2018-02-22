@@ -40,7 +40,7 @@ function validate_arguments
         exit 1
     elif [ $2 -lt $1 ]
     then
-        echo "$0: max size (arg 1) can not be greater than min size (arg 2)"
+        echo "$0: min size (arg 1) can not be greater than max size (arg 2)"
         exit 1
     elif [ ! -d $3 ]
     then

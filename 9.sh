@@ -3,13 +3,18 @@
 function main
 {
     validate_arguments $@
+
+    if [ $# -ge 3 ]
+    then
+        touch $3
+    fi
     
     dirs=$(find $1 -mindepth 1 -maxdepth $2 -type d -printf "%p\n")
 
     for dir in $dirs
     do
         info=$(realpath $dir)' '$(find $dir -mindepth 1 -maxdepth 1 -type f | wc -l)
-        if [ $# -eq 3 ]
+        if [ $# -ge 3 ]
         then
             echo $info >> $3
         else

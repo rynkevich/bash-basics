@@ -13,6 +13,8 @@ function main
 {
     validate_arguments
 
+    truncate -s 0 $FOUT
+
     local dirs=$(find $SELECTED_DIRNAME -mindepth 1 -maxdepth $NESTING -type d -printf "%p\n")
 
     for dir in $dirs

@@ -13,7 +13,8 @@ function main
 {
     validate_arguments
 
-    touch $FOUT
+    truncate -s 0 $FOUT
+    
     local files=$(find . -maxdepth 2 -type f -printf "%p\n")
 
     for file in $files

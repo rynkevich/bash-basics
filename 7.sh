@@ -12,7 +12,8 @@ function main
 {
     validate_arguments
 
-    touch $FOUT
+    truncate -s 0 $FOUT
+
     local dirs=$(find $SELECTED_DIRNAME -maxdepth 1 -type d -printf "%p\n")
 
     for dir in $dirs
